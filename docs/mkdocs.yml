@@ -6,6 +6,7 @@ theme:
     accent: indigo
 nav:
   - Overview: index.md
+  - Project Plan: PROJECT_PLAN_v2.md
   - Architecture: architecture/index.md
   - Data Sources: architecture/data-sources.md
   - Setup: setup/index.md

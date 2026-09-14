@@ -1,6 +1,6 @@
 # Legal Doc Intelligence
 
-Production-grade documentation automation platform for law firms. See `PROJECT_PLAN_v2.md` at the repository root for the full end-to-end project plan.
+Production-grade documentation automation platform for law firms. See [`PROJECT_PLAN_v2.md`](PROJECT_PLAN_v2.md) for the full end-to-end project plan.
 
 - [Architecture](architecture/index.md)
 - [Data Sources](architecture/data-sources.md)

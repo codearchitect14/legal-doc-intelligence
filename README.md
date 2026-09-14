@@ -1,6 +1,6 @@
 # Legal Doc Intelligence
 
-**A production-grade documentation automation platform for law firms.** Full plan: [`PROJECT_PLAN_v2.md`](PROJECT_PLAN_v2.md).
+**A production-grade documentation automation platform for law firms.** Full plan: [`docs/PROJECT_PLAN_v2.md`](docs/PROJECT_PLAN_v2.md).
 
 ---
 
@@ -188,8 +188,4 @@ Every table in **PostgreSQL** (with the `pgvector` extension for embeddings) car
 
 ## 8. Repository Layout
 
-See `PROJECT_PLAN_v2.md` Section 8 for the full repository structure rationale. Each backend package and frontend folder has its own `README.md` describing its purpose, inputs, and outputs; narrative and architecture-level documentation lives under `docs/` (see Section 8's documentation-placement policy).
-
-## 9. Git Discipline
-
-This repository has a single contributor. Before every commit and push, verify `git config user.name` / `git config user.email` and `git remote -v` match this repository's identity — see `PROJECT_PLAN_v2.md` Section 20.
+See `docs/PROJECT_PLAN_v2.md` Section 8 for the full repository structure rationale. Each backend package and frontend folder has its own `README.md` describing its purpose, inputs, and outputs; narrative and architecture-level documentation lives under `docs/` (see Section 8's documentation-placement policy).
