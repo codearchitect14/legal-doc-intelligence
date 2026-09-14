@@ -1,0 +1,18 @@
+site_name: Legal Doc Intelligence
+theme:
+  name: material
+  palette:
+    primary: indigo
+    accent: indigo
+nav:
+  - Overview: index.md
+  - Architecture: architecture/index.md
+  - Setup: setup/index.md
+  - API Reference: api/index.md
+  - User Guide: user-guide/index.md
+markdown_extensions:
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
