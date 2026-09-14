@@ -25,7 +25,10 @@ def _auth_headers(token: str) -> dict[str, str]:
 def _build_text_pdf(text: str) -> bytes:
     doc = fitz.open()
     page = doc.new_page()
-    page.insert_text((72, 72), text)
+    # insert_text() silently drops text that overflows the page width for a
+    # single unwrapped line, so longer test strings need insert_textbox()'s
+    # wrapping instead.
+    page.insert_textbox(page.rect + (36, 36, -36, -36), text)
     pdf_bytes = doc.tobytes()
     doc.close()
     return pdf_bytes

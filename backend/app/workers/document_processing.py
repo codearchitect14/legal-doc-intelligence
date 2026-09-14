@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from app.models.document import Document
 from app.models.embedding_chunk import EmbeddingChunk
 from app.services.classification import chunk_and_embed, classify
+from app.services.field_extraction import extract_fields
 from app.services.text_extraction import extract_text
 
 logger = logging.getLogger(__name__)
@@ -25,6 +26,9 @@ def process_document(document_id: UUID, db: Session) -> None:
 
         category, _confidence = classify(text)
         document.category = category
+
+        for field in extract_fields(document, text):
+            db.add(field)
 
         for chunk_text, embedding in chunk_and_embed(text):
             db.add(

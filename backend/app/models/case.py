@@ -9,9 +9,11 @@ from app.core.db import Base
 from app.models.common import CreatedAtMixin, UUIDPrimaryKeyMixin
 
 if TYPE_CHECKING:
+    from app.models.case_totals import CaseTotals
     from app.models.document import Document
     from app.models.draft_output import DraftOutput
     from app.models.firm import Firm
+    from app.models.inconsistency_flag import InconsistencyFlag
     from app.models.model_usage_log import ModelUsageLog
     from app.models.timeline_event import TimelineEvent
 
@@ -30,3 +32,5 @@ class Case(Base, UUIDPrimaryKeyMixin, CreatedAtMixin):
     timeline_events: Mapped[list["TimelineEvent"]] = relationship(back_populates="case")
     draft_outputs: Mapped[list["DraftOutput"]] = relationship(back_populates="case")
     model_usage_logs: Mapped[list["ModelUsageLog"]] = relationship(back_populates="case")
+    totals: Mapped["CaseTotals | None"] = relationship(back_populates="case", uselist=False)
+    inconsistency_flags: Mapped[list["InconsistencyFlag"]] = relationship(back_populates="case")
