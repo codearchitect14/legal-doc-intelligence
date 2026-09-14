@@ -193,18 +193,19 @@ legal-doc-platform/
     Dockerfile
   docs/
     mkdocs.yml
-    architecture/
+    architecture/      including data-sources.md, the sample-data sourcing and labeling policy
     setup/
-    api/
     user-guide/
   data/
-    sample_case_folder/   assembled real sample documents, see Section 11
+    sample_case_folder/   assembled real sample documents, see Section 11; data only, no documentation files
   docker-compose.yml
   .github/
     workflows/
 ```
 
 This structure separates concerns cleanly, keeps the language model logic isolated inside a single module for easier testing and swapping, and keeps documentation and sample data inside the repository so the whole project is reproducible from a fresh clone.
+
+Documentation lives in exactly two places, each with a distinct audience: a short `README.md` inside each backend package and frontend folder (Section 19) explains that module's purpose to someone browsing the code directly, while `docs/` (rendered through MkDocs) is the narrative, architecture-level, and user-facing documentation site. Neither the `data/` directory nor generated/derived directories carry documentation files — `data/` holds only data assets. A static API reference page is added under `docs/` once the OpenAPI-schema generation step (Section 14, Phase 8) produces real content; until then the interactive reference lives at the running backend's `/docs` and `/openapi.json` routes rather than as an empty placeholder page in the docs site.
 
 ---
 
@@ -516,9 +517,9 @@ The public site and the application must read as the work of an established, tru
 
 - All project documentation is written in Markdown and rendered through MkDocs with the Material theme, producing a clean, navigable, professional documentation site.
 - Every architectural document includes a Mermaid diagram, consistent with the diagrams already included in this plan.
-- Documentation is organized into clear sections, overview, architecture, setup guide, an application programming interface reference generated from the FastAPI OpenAPI schema, and a user guide.
+- Documentation is organized into clear sections: overview, architecture, setup guide, and a user guide, plus an application programming interface reference generated from the FastAPI OpenAPI schema once Phase 8 produces one (see Section 8's documentation-placement policy).
 - Writing style is plain, direct, and professional throughout, avoiding casual language or informal phrasing.
-- Every module includes a short readme file explaining its purpose, its inputs, and its outputs.
+- Every module includes a short readme file explaining its purpose, its inputs, and its outputs. This is separate from and complementary to the docs site: module readmes serve someone reading the code directly, the docs site serves architecture-level and user-facing documentation.
 
 ---
 

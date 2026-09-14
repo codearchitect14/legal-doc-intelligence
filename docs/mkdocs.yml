@@ -7,8 +7,8 @@ theme:
 nav:
   - Overview: index.md
   - Architecture: architecture/index.md
+  - Data Sources: architecture/data-sources.md
   - Setup: setup/index.md
-  - API Reference: api/index.md
   - User Guide: user-guide/index.md
 markdown_extensions:
   - pymdownx.superfences:
