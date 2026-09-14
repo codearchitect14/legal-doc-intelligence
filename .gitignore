@@ -33,3 +33,6 @@ site/
 
 # Alembic
 *.sqlite3
+
+# Uploaded case documents (local dev object storage)
+data/uploads/

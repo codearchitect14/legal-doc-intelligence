@@ -25,6 +25,8 @@ class Settings(BaseSettings):
     llm_preferred_provider: str = "groq"
 
     object_storage_path: str = "./data/uploads"
+    max_upload_size_mb: int = 25
+    embedding_model_name: str = "all-MiniLM-L6-v2"
 
 
 @lru_cache
