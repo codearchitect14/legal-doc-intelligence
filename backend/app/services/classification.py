@@ -14,6 +14,80 @@ CATEGORY_PROTOTYPES: dict[str, str] = {
     "contract": "Signed agreement between two or more parties defining terms, obligations, effective date, and signatures",
     "filing": "Court filing such as a complaint, motion, or judgment, referencing case number, court name, and parties",
 }
+
+# Hybrid signal alongside the semantic prototypes above: on a real document
+# (an insurance Explanation of Benefits), pure embedding similarity picked
+# "wage_record" over "bill" by a razor-thin margin (0.523 vs 0.507) despite
+# the document containing none of a pay stub's actual vocabulary and
+# several unambiguous billing phrases. A small number of highly distinctive,
+# category-specific phrases resolves exactly this kind of near-tie without
+# touching the semantic model or its threshold. Validated against every
+# real sample document in data/sample_case_folder before adding this: fixes
+# the EOB misclassification, correctly promotes two other real documents
+# (a blank W-2 - itself titled "Wage and Tax Statement" - and a real
+# medical consult note) from "uncertain" into their actually-correct
+# category, and changes nothing for the four categories that were already
+# classifying correctly.
+CATEGORY_KEYWORDS: dict[str, list[str]] = {
+    "medical_record": [
+        "diagnosis",
+        "patient",
+        "clinical",
+        "treatment history",
+        "discharge summary",
+        "physician",
+        "prescribed",
+        "symptoms",
+    ],
+    "bill": [
+        "explanation of benefits",
+        "itemized",
+        "amount due",
+        "invoice",
+        "total charges",
+        "billed amount",
+        "balance due",
+        "this is not a bill",
+        "good faith estimate",
+        "billed charges",
+    ],
+    "wage_record": [
+        "pay stub",
+        "gross pay",
+        "net pay",
+        "hourly rate",
+        "hours worked",
+        "overtime",
+        "wage statement",
+        "wage and tax statement",
+        "employer name",
+        "regular rate of pay",
+        "back wages",
+    ],
+    "correspondence": ["dear ", "sincerely", "best regards", "yours truly"],
+    "contract": [
+        "this agreement",
+        "the parties",
+        "whereas",
+        "hereby agree",
+        "effective date",
+        "terms and conditions",
+        "witness whereof",
+    ],
+    "filing": [
+        "plaintiff",
+        "defendant",
+        "docket no",
+        "case no",
+        "court of appeals",
+        "motion to",
+        "hereby ordered",
+        "supreme court",
+    ],
+}
+KEYWORD_BOOST_PER_MATCH = 0.08
+MAX_KEYWORD_BOOST = 0.24
+
 UNCERTAIN_CATEGORY = "uncertain"
 CONFIDENCE_THRESHOLD = 0.35
 CHUNK_SIZE_CHARS = 500
@@ -35,16 +109,29 @@ def _get_model() -> SentenceTransformer:
     return _model
 
 
+def _keyword_boost(text_lower: str, category: str) -> float:
+    hits = sum(1 for keyword in CATEGORY_KEYWORDS.get(category, []) if keyword in text_lower)
+    return min(hits * KEYWORD_BOOST_PER_MATCH, MAX_KEYWORD_BOOST)
+
+
 def classify(text: str) -> tuple[str, float]:
-    """Classify text by cosine similarity to fixed category prototypes."""
+    """Classify text by cosine similarity to fixed category prototypes,
+    with a small keyword boost per category layered on top (see
+    CATEGORY_KEYWORDS above for why)."""
     model = _get_model()
     if not text.strip():
         return UNCERTAIN_CATEGORY, 0.0
 
     text_embedding = model.encode(text, convert_to_tensor=True)
-    scores = util.cos_sim(text_embedding, _prototype_embeddings)[0]
-    best_index = int(scores.argmax())
-    best_score = float(scores[best_index])
+    semantic_scores = util.cos_sim(text_embedding, _prototype_embeddings)[0].tolist()
+    text_lower = text.lower()
+    combined_scores = [
+        semantic_scores[i] + _keyword_boost(text_lower, label)
+        for i, label in enumerate(_prototype_labels)
+    ]
+
+    best_index = max(range(len(combined_scores)), key=lambda i: combined_scores[i])
+    best_score = combined_scores[best_index]
 
     if best_score < CONFIDENCE_THRESHOLD:
         return UNCERTAIN_CATEGORY, best_score

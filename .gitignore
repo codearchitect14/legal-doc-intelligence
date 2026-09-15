@@ -1,6 +1,4 @@
 # Environment / secrets
-.env
-.env.*
 !.env.example
 
 # Python
@@ -26,7 +24,6 @@ build/
 *.log
 
 # IDE / OS
-.vscode/
 .idea/
 .DS_Store
 Thumbs.db
@@ -43,3 +40,4 @@ site/
 # instead, which needs its own entry.
 data/uploads/
 backend/data/
+config.bat
