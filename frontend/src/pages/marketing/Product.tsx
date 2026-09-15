@@ -9,7 +9,7 @@ const FEATURES = [
   {
     title: "Intake and classification",
     description:
-      "Upload a folder or archive of files. Scanned pages are OCR'd automatically, and every document is classified — medical record, bill, wage record, correspondence, contract, or filing.",
+      "Upload a folder or archive of files. Scanned pages are OCR'd automatically, and every document is classified - medical record, bill, wage record, correspondence, contract, or filing.",
     illustration: DocumentStackIllustration,
   },
   {
@@ -21,7 +21,7 @@ const FEATURES = [
   {
     title: "Damages calculation",
     description:
-      "Billed amounts and wage loss figures are summed deterministically — a spreadsheet-grade total, not a language model doing arithmetic.",
+      "Billed amounts and wage loss figures are summed deterministically - a spreadsheet-grade total, not a language model doing arithmetic.",
     illustration: CalculatorIllustration,
   },
   {

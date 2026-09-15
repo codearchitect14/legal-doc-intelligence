@@ -131,7 +131,7 @@ export function DraftPanel({ caseId }: { caseId: string }) {
       )}
 
       {drafts.length === 0 && !generating && (
-        <p className="mt-4 text-sm text-slate-500">No drafts yet — generate one above.</p>
+        <p className="mt-4 text-sm text-slate-500">No drafts yet - generate one above.</p>
       )}
       {generating && drafts.length === 0 && <Spinner label="Generating draft…" />}
     </div>

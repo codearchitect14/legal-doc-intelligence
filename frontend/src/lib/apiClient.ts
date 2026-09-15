@@ -149,7 +149,7 @@ export const documentsApi = {
   // file is fetched as a blob and handed back as an object URL instead.
   // The blob's own content-type (set by the backend from the stored
   // filename) tells the viewer whether to render an image, a PDF, or fall
-  // back to a plain download link — DocumentOut doesn't expose a filename.
+  // back to a plain download link - DocumentOut doesn't expose a filename.
   fetchFile: async (caseId: string, documentId: string) => {
     const blob = await request<Blob>(`/cases/${caseId}/documents/${documentId}/file`);
     return { url: URL.createObjectURL(blob), contentType: blob.type };

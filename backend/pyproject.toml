@@ -30,7 +30,7 @@ dependencies = [
     "redis>=5.0",
     # Listed explicitly (not just pulled in transitively by easyocr/
     # sentence-transformers) so the [tool.uv.sources] CPU-index override
-    # below actually binds — uv only honors a source override for a
+    # below actually binds - uv only honors a source override for a
     # package that appears as a direct dependency.
     "torch",
     "torchvision",
@@ -48,7 +48,7 @@ dev = [
 package = false
 
 # Without this, `uv sync` on Linux (e.g. inside the Docker image) resolves
-# the default CUDA-enabled torch/torchvision wheels — gigabytes of NVIDIA
+# the default CUDA-enabled torch/torchvision wheels - gigabytes of NVIDIA
 # libraries (cudnn, cublas, cusparse, triton, ...) that this project never
 # uses (no GPU anywhere it runs). Windows happens to default to CPU-only
 # wheels already, which is why this was invisible in local dev.

@@ -14,7 +14,7 @@ def save_upload(firm_id: UUID, case_id: UUID, document_id: UUID, filename: str, 
     """Persist raw uploaded bytes to disk and return the stored file's path.
 
     Each document gets its own directory, and only the final path component
-    of `filename` is used (`Path(filename).name`) — this is what neutralizes
+    of `filename` is used (`Path(filename).name`) - this is what neutralizes
     zip-slip when `filename` comes from an archive member (e.g.
     `../../etc/passwd`), since any directory traversal in it is discarded.
     """

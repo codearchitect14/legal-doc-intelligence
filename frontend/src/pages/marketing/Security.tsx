@@ -4,13 +4,13 @@ import { Card } from "../../components/Card";
 
 // Every claim on this page describes a guarantee actually implemented and
 // tested in the codebase (see backend/app/tests/test_firm_isolation.py and
-// the auth/RBAC layer) — no forward-looking or invented claims.
+// the auth/RBAC layer) - no forward-looking or invented claims.
 const GUARANTEES = [
   {
     icon: Lock,
     title: "Firm-level data isolation at the query layer",
     description:
-      "Every case, document, and derived record carries a firm identifier, and every database query is filtered by it — not only checked at the API boundary. This is proven by an automated test suite that verifies one firm's token can never read another firm's data, run on every change before it can merge.",
+      "Every case, document, and derived record carries a firm identifier, and every database query is filtered by it - not only checked at the API boundary. This is proven by an automated test suite that verifies one firm's token can never read another firm's data, run on every change before it can merge.",
   },
   {
     icon: KeyRound,

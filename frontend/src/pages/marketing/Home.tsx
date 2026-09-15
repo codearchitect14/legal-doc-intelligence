@@ -11,7 +11,7 @@ export function Home() {
       <section className="mx-auto max-w-6xl px-6 py-20 text-center">
         <h1 className="mx-auto max-w-3xl text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
           Turn a folder of case documents into a chronology, a damages estimate, and a first
-          draft — automatically.
+          draft - automatically.
         </h1>
         <p className="mx-auto mt-6 max-w-2xl text-lg text-slate-600">
           Legal Doc Intelligence classifies, cross-checks, and organizes medical records, bills,
@@ -40,7 +40,7 @@ export function Home() {
             <FileSearch className="h-6 w-6 text-brand-600" aria-hidden />
             <h3 className="mt-3 font-semibold text-slate-900">Beyond search and chat</h3>
             <p className="mt-2 text-sm text-slate-600">
-              Damage calculation, deadline extraction, and inconsistency detection — analytical
+              Damage calculation, deadline extraction, and inconsistency detection - analytical
               output, not just document Q&amp;A.
             </p>
           </Card>
@@ -48,7 +48,7 @@ export function Home() {
             <ScaleIcon className="h-6 w-6 text-brand-600" aria-hidden />
             <h3 className="mt-3 font-semibold text-slate-900">Built for mid-sized firms</h3>
             <p className="mt-2 text-sm text-slate-600">
-              Fast to set up, transparently priced — an alternative to enterprise platforms sized
+              Fast to set up, transparently priced - an alternative to enterprise platforms sized
               for firms that don't have a procurement department.
             </p>
           </Card>
@@ -70,7 +70,7 @@ export function Home() {
             <h2 className="text-2xl font-bold text-slate-900">Firm data stays firm data</h2>
             <p className="mt-3 text-slate-600">
               Every case, document, and derived record is scoped to a firm at the database query
-              layer — not only checked at the API boundary — so one firm can never see another
+              layer - not only checked at the API boundary - so one firm can never see another
               firm's data, even from a coding mistake.{" "}
               <Link to="/security" className="font-medium text-brand-700 hover:underline">
                 Read about our security model →

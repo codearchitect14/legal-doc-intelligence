@@ -26,7 +26,7 @@ export function Demo() {
         {submitted ? (
           <div className="flex flex-col items-center py-6 text-center">
             <CheckCircle2 className="h-10 w-10 text-success-500" aria-hidden />
-            <p className="mt-3 font-semibold text-slate-900">Thanks — we'll be in touch.</p>
+            <p className="mt-3 font-semibold text-slate-900">Thanks - we'll be in touch.</p>
             <p className="mt-1 text-sm text-slate-500">
               A member of our team will reach out to schedule your demo.
             </p>

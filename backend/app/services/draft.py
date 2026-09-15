@@ -48,7 +48,7 @@ def build_prompt(
 ) -> str:
     """The single consolidated prompt (Section 10.3): chronology, totals,
     and flagged issues condensed into one structured block. Never raw
-    document text — that is exactly what keeps the per-case token cost low."""
+    document text - that is exactly what keeps the per-case token cost low."""
     total_billed = totals.total_billed if totals else 0
     total_wages = totals.total_wages if totals else 0
     task = (
@@ -140,7 +140,7 @@ def update_draft_content(draft: DraftOutput, content: str, db: Session) -> Draft
 
 def export_docx(draft: DraftOutput, case: Case) -> bytes:
     """Render a draft's content as a downloadable .docx (Section 6 item 7's
-    "export to Word or PDF" — Word alone covers the "or")."""
+    "export to Word or PDF" - Word alone covers the "or")."""
     document = docx.Document()
     heading = "Demand Letter" if draft.output_type == "demand_letter" else "Case Summary"
     document.add_heading(heading, level=1)

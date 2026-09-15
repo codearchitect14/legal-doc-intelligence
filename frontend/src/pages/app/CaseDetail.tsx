@@ -44,7 +44,7 @@ export function CaseDetail() {
   useEffect(() => {
     if (!caseId) return;
     // A case can 404 here if the ID belongs to another firm, was deleted,
-    // or was mistyped — the loading spinner must not spin forever in any
+    // or was mistyped - the loading spinner must not spin forever in any
     // of those cases (this used to be exactly what happened).
     casesApi
       .get(caseId)

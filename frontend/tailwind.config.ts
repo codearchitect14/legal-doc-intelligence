@@ -2,7 +2,7 @@ import type { Config } from "tailwindcss";
 
 // The platform's design token set (PROJECT_PLAN_v2.md Section 13.1): one
 // primary brand scale, one neutral gray scale, and a small set of status
-// accents — reused everywhere via this theme extension, never redefined
+// accents - reused everywhere via this theme extension, never redefined
 // ad hoc on individual pages. Indigo matches the color already used for the
 // "Client" layer across the project's architecture diagrams, so the brand
 // reads consistently across docs, diagrams, and the product itself.

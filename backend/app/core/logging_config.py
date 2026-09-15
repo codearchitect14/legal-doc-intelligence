@@ -10,7 +10,7 @@ from starlette.responses import Response
 
 # Standard LogRecord attributes, used to separate caller-supplied `extra`
 # fields (case_id, provider, ...) from Python's own bookkeeping fields when
-# flattening a record to JSON — anything not in this set is "extra".
+# flattening a record to JSON - anything not in this set is "extra".
 _STANDARD_ATTRS = frozenset(logging.LogRecord("", 0, "", 0, "", (), None).__dict__.keys())
 
 

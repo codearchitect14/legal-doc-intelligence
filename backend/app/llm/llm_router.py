@@ -95,7 +95,7 @@ def _case_token_usage(case_id: UUID, db: Session) -> int:
 
 def generate_narrative(prompt: str, case_id: UUID, db: Session) -> str | None:
     """The LLM router's failover orchestration (Section 10.1): try Groq, then
-    Gemini, recording usage on success. Never raises — returns None if the
+    Gemini, recording usage on success. Never raises - returns None if the
     token budget is exhausted or both providers are unavailable, so a case
     is never left without output; the caller falls back to a template."""
     settings = get_settings()

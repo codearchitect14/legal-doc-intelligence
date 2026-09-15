@@ -15,7 +15,7 @@ export function Solutions() {
         <Card>
           <h3 className="font-semibold text-slate-900">Speed of setup</h3>
           <p className="mt-2 text-sm text-slate-600">
-            Register a firm, invite your team, and process your first case the same day — no
+            Register a firm, invite your team, and process your first case the same day - no
             sales-led onboarding cycle required.
           </p>
         </Card>
@@ -32,7 +32,7 @@ export function Solutions() {
         <Card>
           <h3 className="font-semibold text-slate-900">Analytical output, not just chat</h3>
           <p className="mt-2 text-sm text-slate-600">
-            A chronology, a damages estimate, and flagged inconsistencies — work product, not a
+            A chronology, a damages estimate, and flagged inconsistencies - work product, not a
             search box over your documents.
           </p>
         </Card>

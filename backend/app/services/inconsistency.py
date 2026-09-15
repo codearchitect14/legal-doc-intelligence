@@ -16,7 +16,7 @@ MISSING_FOLLOWUP_GAP_DAYS = 60
 
 def _conflicting_amounts_on_same_date(case_id: UUID, db: Session) -> list[InconsistencyFlag]:
     """A billed_amount field never carries its own field_date (only
-    field_name="date" fields do) — an amount's date is whatever date(s)
+    field_name="date" fields do) - an amount's date is whatever date(s)
     were extracted from the *same document*, so this correlates the two
     by document rather than by ExtractedField.field_date directly."""
     rows = db.execute(

@@ -96,14 +96,27 @@ def main() -> int:
     # Background processing (OCR/classification/extraction) runs after the
     # upload response is sent; poll until every document leaves "pending".
     record("\n## 4. Waiting for background processing (OCR, classification, extraction)")
+    # A 2MB+ scanned form or a 100+ page opinion can take over a minute to
+    # OCR and classify; a short timeout here previously let the script move
+    # on to /analyze before every document had finished, silently analyzing
+    # a partial document set. 180 x 2s = 6 minutes of headroom.
     process_start = time.perf_counter()
-    for _ in range(60):
+    max_attempts = 180
+    poll_interval_seconds = 2
+    for attempt in range(max_attempts):
         response = client.get(f"/cases/{case_id}/documents")
         response.raise_for_status()
         documents = response.json()
         if all(d["ocr_status"] != "pending" for d in documents):
             break
-        time.sleep(1)
+        time.sleep(poll_interval_seconds)
+    else:
+        still_pending = [d["id"][:8] for d in documents if d["ocr_status"] == "pending"]
+        record(
+            f"- WARNING: {len(still_pending)} document(s) still `pending` after "
+            f"{max_attempts * poll_interval_seconds}s ({still_pending}); analysis below "
+            "will run against an incomplete document set."
+        )
     process_duration = time.perf_counter() - process_start
     record(f"- Processing settled after {process_duration:.2f}s")
     for d in documents:

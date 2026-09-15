@@ -34,7 +34,7 @@ export function Pricing() {
     <div className="mx-auto max-w-5xl px-6 py-16">
       <h1 className="text-center text-3xl font-bold text-slate-900">Simple, Transparent Pricing</h1>
       <p className="mx-auto mt-4 max-w-xl text-center text-slate-600">
-        Published tiers — no quote request required to see what this costs.
+        Published tiers - no quote request required to see what this costs.
       </p>
 
       <div className="mt-12 grid gap-6 sm:grid-cols-3">

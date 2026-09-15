@@ -4,7 +4,7 @@ from app.core.config import get_settings
 
 # Fixed category prototypes matching PROJECT_PLAN_v2.md Section 6's document
 # categories. Escalation to the LLM router for genuinely ambiguous cases is
-# Phase 4 scope (see PROJECT_PLAN_v2.md Section 10.1) — for now, anything
+# Phase 4 scope (see PROJECT_PLAN_v2.md Section 10.1) - for now, anything
 # below CONFIDENCE_THRESHOLD is returned as "uncertain".
 CATEGORY_PROTOTYPES: dict[str, str] = {
     "medical_record": "Doctor's clinical notes, diagnosis, treatment history, patient visit summary, hospital discharge report",

@@ -1,7 +1,7 @@
 // Abstract, brand-colored illustrations for the marketing site
 // (PROJECT_PLAN_v2.md Section 13.3: no licensed stock photography available
 // for this build, and the plan itself names abstract illustration of the
-// workflow — documents, timelines, checkmarks — as the more credible
+// workflow - documents, timelines, checkmarks - as the more credible
 // fallback for a technical product).
 
 export function WorkflowIllustration({ className = "" }: { className?: string }) {
