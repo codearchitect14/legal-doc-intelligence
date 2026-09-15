@@ -183,3 +183,77 @@ def test_firm_cannot_read_or_create_another_firms_draft(client, db_session):
 
     list_as_b = client.get(f"/cases/{case_id}/drafts", headers=_auth_headers(token_b))
     assert list_as_b.status_code == 404
+
+
+def test_edit_draft_persists_content(client, db_session):
+    token, case_id = _make_analyzed_case(
+        client, db_session, "admin-t7@example.com", with_inconsistency=False
+    )
+    create_response = client.post(
+        f"/cases/{case_id}/draft",
+        json={"output_type": "chronology_summary"},
+        headers=_auth_headers(token),
+    )
+    draft_id = create_response.json()["id"]
+
+    edit_response = client.patch(
+        f"/cases/{case_id}/drafts/{draft_id}",
+        json={"content": "Edited by the lawyer."},
+        headers=_auth_headers(token),
+    )
+    assert edit_response.status_code == 200
+    assert edit_response.json()["content"] == "Edited by the lawyer."
+
+    get_response = client.get(
+        f"/cases/{case_id}/drafts/{draft_id}", headers=_auth_headers(token)
+    )
+    assert get_response.json()["content"] == "Edited by the lawyer."
+
+
+def test_export_draft_returns_a_valid_docx(client, db_session):
+    token, case_id = _make_analyzed_case(
+        client, db_session, "admin-t8@example.com", with_inconsistency=False
+    )
+    create_response = client.post(
+        f"/cases/{case_id}/draft",
+        json={"output_type": "chronology_summary"},
+        headers=_auth_headers(token),
+    )
+    draft_id = create_response.json()["id"]
+
+    export_response = client.get(
+        f"/cases/{case_id}/drafts/{draft_id}/export", headers=_auth_headers(token)
+    )
+    assert export_response.status_code == 200
+    assert export_response.headers["content-type"] == (
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    )
+    # A valid .docx is a zip archive; PK\x03\x04 is the zip local-file-header magic.
+    assert export_response.content.startswith(b"PK\x03\x04")
+
+
+def test_firm_cannot_edit_or_export_another_firms_draft(client, db_session):
+    token_a, case_id = _make_analyzed_case(
+        client, db_session, "admin-t9a@example.com", with_inconsistency=False
+    )
+    create_response = client.post(
+        f"/cases/{case_id}/draft",
+        json={"output_type": "chronology_summary"},
+        headers=_auth_headers(token_a),
+    )
+    draft_id = create_response.json()["id"]
+
+    _register_firm(client, "Firm T9B", "admin-t9b@example.com", "password123")
+    token_b = _login(client, "admin-t9b@example.com", "password123")
+
+    edit_as_b = client.patch(
+        f"/cases/{case_id}/drafts/{draft_id}",
+        json={"content": "hijacked"},
+        headers=_auth_headers(token_b),
+    )
+    assert edit_as_b.status_code == 404
+
+    export_as_b = client.get(
+        f"/cases/{case_id}/drafts/{draft_id}/export", headers=_auth_headers(token_b)
+    )
+    assert export_as_b.status_code == 404

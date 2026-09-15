@@ -1,5 +1,7 @@
+from io import BytesIO
 from uuid import UUID
 
+import docx
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -127,3 +129,25 @@ def generate_draft(case_id: UUID, output_type: str, db: Session) -> DraftOutput:
     db.commit()
     db.refresh(draft)
     return draft
+
+
+def update_draft_content(draft: DraftOutput, content: str, db: Session) -> DraftOutput:
+    draft.content = content
+    db.commit()
+    db.refresh(draft)
+    return draft
+
+
+def export_docx(draft: DraftOutput, case: Case) -> bytes:
+    """Render a draft's content as a downloadable .docx (Section 6 item 7's
+    "export to Word or PDF" — Word alone covers the "or")."""
+    document = docx.Document()
+    heading = "Demand Letter" if draft.output_type == "demand_letter" else "Case Summary"
+    document.add_heading(heading, level=1)
+    document.add_heading(case.title, level=2)
+    for paragraph in draft.content.split("\n"):
+        document.add_paragraph(paragraph)
+
+    buffer = BytesIO()
+    document.save(buffer)
+    return buffer.getvalue()

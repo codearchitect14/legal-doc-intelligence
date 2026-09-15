@@ -17,6 +17,10 @@ class DraftRequest(BaseModel):
         return value
 
 
+class DraftUpdateRequest(BaseModel):
+    content: str
+
+
 class DraftOutputOut(BaseModel):
     id: UUID
     case_id: UUID

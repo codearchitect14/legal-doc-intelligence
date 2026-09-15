@@ -4,6 +4,7 @@ from pathlib import Path
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, BackgroundTasks, Depends, File, HTTPException, UploadFile, status
+from fastapi.responses import FileResponse
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -11,8 +12,8 @@ from app.core.config import get_settings
 from app.core.db import get_db
 from app.core.deps import get_current_firm_id
 from app.models.case import Case
-from app.models.document import Document
-from app.schemas.document import DocumentOut
+from app.models.document import Document, ExtractedField
+from app.schemas.document import DocumentOut, ExtractedFieldOut
 from app.services.storage import save_upload
 from app.workers.document_processing import process_document
 
@@ -112,13 +113,7 @@ def list_documents(
     return list(db.execute(select(Document).where(Document.case_id == case_id)).scalars())
 
 
-@router.get("/{document_id}", response_model=DocumentOut)
-def get_document(
-    case_id: UUID,
-    document_id: UUID,
-    firm_id: UUID = Depends(get_current_firm_id),
-    db: Session = Depends(get_db),
-) -> Document:
+def _get_owned_document(case_id: UUID, document_id: UUID, firm_id: UUID, db: Session) -> Document:
     _get_owned_case(case_id, firm_id, db)
     document = db.execute(
         select(Document).where(Document.id == document_id, Document.case_id == case_id)
@@ -126,3 +121,42 @@ def get_document(
     if document is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document not found")
     return document
+
+
+@router.get("/{document_id}", response_model=DocumentOut)
+def get_document(
+    case_id: UUID,
+    document_id: UUID,
+    firm_id: UUID = Depends(get_current_firm_id),
+    db: Session = Depends(get_db),
+) -> Document:
+    return _get_owned_document(case_id, document_id, firm_id, db)
+
+
+@router.get("/{document_id}/file")
+def get_document_file(
+    case_id: UUID,
+    document_id: UUID,
+    firm_id: UUID = Depends(get_current_firm_id),
+    db: Session = Depends(get_db),
+) -> FileResponse:
+    document = _get_owned_document(case_id, document_id, firm_id, db)
+    file_path = Path(document.file_path)
+    if not file_path.is_file():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Stored file not found")
+    return FileResponse(file_path, filename=file_path.name)
+
+
+@router.get("/{document_id}/fields", response_model=list[ExtractedFieldOut])
+def list_document_fields(
+    case_id: UUID,
+    document_id: UUID,
+    firm_id: UUID = Depends(get_current_firm_id),
+    db: Session = Depends(get_db),
+) -> list[ExtractedField]:
+    _get_owned_document(case_id, document_id, firm_id, db)
+    return list(
+        db.execute(
+            select(ExtractedField).where(ExtractedField.document_id == document_id)
+        ).scalars()
+    )

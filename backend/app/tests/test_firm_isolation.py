@@ -53,3 +53,17 @@ def test_login_rejects_wrong_password(client):
         "/auth/login", data={"username": "admin-c@example.com", "password": "wrong"}
     )
     assert response.status_code == 401
+
+
+def test_me_endpoint_returns_current_user(client):
+    _register_firm(client, "Firm G", "admin-g@example.com", "password123")
+    token = _login(client, "admin-g@example.com", "password123")
+
+    response = client.get("/auth/me", headers=_auth_headers(token))
+    assert response.status_code == 200
+    body = response.json()
+    assert body["email"] == "admin-g@example.com"
+    assert body["role"] == "firm_admin"
+
+    unauthenticated = client.get("/auth/me")
+    assert unauthenticated.status_code == 401

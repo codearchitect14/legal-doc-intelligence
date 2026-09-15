@@ -7,6 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.db import get_db
+from app.core.deps import get_current_user
 from app.core.security import (
     create_access_token,
     create_refresh_token,
@@ -85,3 +86,8 @@ def refresh(payload: RefreshRequest, db: Session = Depends(get_db)) -> AccessTok
     if user is None:
         raise invalid_token_error
     return AccessToken(access_token=create_access_token(user.id))
+
+
+@router.get("/me", response_model=UserOut)
+def read_current_user(user: User = Depends(get_current_user)) -> User:
+    return user

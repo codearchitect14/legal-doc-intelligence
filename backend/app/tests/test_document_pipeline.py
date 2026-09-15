@@ -115,3 +115,47 @@ def test_firm_cannot_upload_to_or_list_another_firms_case(client):
 
     list_as_d = client.get(f"/cases/{case_id}/documents", headers=_auth_headers(token_d))
     assert list_as_d.status_code == 404
+
+
+def test_document_file_and_fields_are_readable_and_firm_scoped(client):
+    _register_firm(client, "Firm E", "admin-e@example.com", "password123")
+    _register_firm(client, "Firm F", "admin-f@example.com", "password123")
+    token_e = _login(client, "admin-e@example.com", "password123")
+    token_f = _login(client, "admin-f@example.com", "password123")
+
+    case_response = client.post(
+        "/cases", json={"title": "Bill case"}, headers=_auth_headers(token_e)
+    )
+    case_id = case_response.json()["id"]
+
+    pdf_bytes = _build_text_pdf(
+        "Invoice from Acme Billing Services, dated January 5, 2024. Amount due: $500.00."
+    )
+    upload_response = client.post(
+        f"/cases/{case_id}/documents",
+        files={"files": ("bill.pdf", pdf_bytes, "application/pdf")},
+        headers=_auth_headers(token_e),
+    )
+    document_id = upload_response.json()[0]["id"]
+
+    file_response = client.get(
+        f"/cases/{case_id}/documents/{document_id}/file", headers=_auth_headers(token_e)
+    )
+    assert file_response.status_code == 200
+    assert file_response.content.startswith(b"%PDF")
+
+    fields_response = client.get(
+        f"/cases/{case_id}/documents/{document_id}/fields", headers=_auth_headers(token_e)
+    )
+    assert fields_response.status_code == 200
+    assert any(f["field_name"] == "date" for f in fields_response.json())
+
+    file_as_f = client.get(
+        f"/cases/{case_id}/documents/{document_id}/file", headers=_auth_headers(token_f)
+    )
+    assert file_as_f.status_code == 404
+
+    fields_as_f = client.get(
+        f"/cases/{case_id}/documents/{document_id}/fields", headers=_auth_headers(token_f)
+    )
+    assert fields_as_f.status_code == 404
