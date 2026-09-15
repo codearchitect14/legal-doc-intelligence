@@ -6,44 +6,44 @@
 
 ## 1. Project Overview
 
-Lawyers and paralegals routinely receive large, unorganized sets of case documents — medical records, bills, wage reports, contracts, correspondence, and court filings, whether digital or scanned. Building a usable case record from this material today means manually reading every file, extracting relevant facts and dates, cross-checking figures against supporting records, and assembling a written work product such as a demand letter or case chronology. That work is repetitive, time-consuming, and error-prone, even though it does not require legal judgment to perform the extraction and organization steps.
+Lawyers and paralegals routinely receive large, unorganized sets of case documents - medical records, bills, wage reports, contracts, correspondence, and court filings, whether digital or scanned. Building a usable case record from this material today means manually reading every file, extracting relevant facts and dates, cross-checking figures against supporting records, and assembling a written work product such as a demand letter or case chronology. That work is repetitive, time-consuming, and error-prone, even though it does not require legal judgment to perform the extraction and organization steps.
 
-**Legal Doc Intelligence** ingests a case's raw document folder and produces the structured outputs a lawyer or paralegal currently builds by hand: classified document sets, chronological timelines, damages calculations, inconsistency flags, and first-draft demand letters or case summaries — with a level of engineering discipline (automated testing, environment separation, CI, firm-level data isolation) meant to support real production use rather than a fragile prototype.
+**Legal Doc Intelligence** ingests a case's raw document folder and produces the structured outputs a lawyer or paralegal currently builds by hand: classified document sets, chronological timelines, damages calculations, inconsistency flags, and first-draft demand letters or case summaries - with a level of engineering discipline (automated testing, environment separation, CI, firm-level data isolation) meant to support real production use rather than a fragile prototype.
 
-Existing legal AI platforms (Harvey, Legora) target large enterprise firms with expensive, sales-led platforms. Mid-sized firms and solo practitioners are underserved — they lack the budget for those platforms, and most affordable alternatives are limited to plain document chat rather than structured analytical output. This project targets that gap.
+Existing legal AI platforms (Harvey, Legora) target large enterprise firms with expensive, sales-led platforms. Mid-sized firms and solo practitioners are underserved - they lack the budget for those platforms, and most affordable alternatives are limited to plain document chat rather than structured analytical output. This project targets that gap.
 
 ## 2. Objectives
 
 - **Reduce manual hours** lawyers and paralegals spend on document sorting, timeline building, and first-draft generation.
-- **Provide real analytical value** beyond simple search or chat — damage calculation, deadline extraction, and inconsistency detection across documents.
+- **Provide real analytical value** beyond simple search or chat - damage calculation, deadline extraction, and inconsistency detection across documents.
 - **Minimize LLM cost per case** by doing deterministic extraction and open-source embeddings *before* any model call, and invoking a large language model only once per case, at the final drafting step.
-- **Enforce strict firm-level data isolation** at the database query layer, not just the API layer, so one firm can never see another firm's data — even from a coding mistake.
-- **Follow production-grade engineering practice from the first commit** — automated tests, CI, environment separation, and observability — so the MVP can graduate into a real deployment without a rewrite.
-- **Use only free and open-source technology** for this stage, so the system is buildable, testable, and demonstrable at zero infrastructure cost.
+- **Enforce strict firm-level data isolation** at the database query layer, not just the API layer, so one firm can never see another firm's data - even from a coding mistake.
+- **Apply production-grade engineering practice** - automated tests, CI, environment separation, and observability - so the platform can move to production without a rewrite.
+- **Keep infrastructure costs low** by building on open-source models and self-hosted infrastructure, so the platform is inexpensive to run and demonstrate.
 
 ## 3. What We've Built So Far
 
 | Phase | Status | Delivered |
 |---|---|---|
-| **0 — Project Setup** | ✅ Done | Repo scaffold, Docker Compose (Postgres+pgvector, Redis), typed env config, CI (lint + test), MkDocs site |
-| **1 — Backend Foundation** | ✅ Done | FastAPI skeleton, full SQLAlchemy data model, Alembic migrations, JWT auth (access + refresh), role-based access control, firm-level isolation enforced at the query layer and proven by an automated test |
-| **2 — Document Intake Pipeline** | ✅ Done | Multi-file/archive upload with validation and zip-slip protection, OCR (EasyOCR + PyMuPDF, with a per-page OCR fallback for scanned content), document classification via embedding similarity, background processing sharing the request's DB session |
-| **3 — Extraction & Analysis Engine** | ✅ Done | Structured field extraction (spaCy NER **+** regex **+** dateutil, cross-validated and range-checked before anything is persisted), chronology assembly, deterministic damages/wage totals, rule-based inconsistency detection, all firm-scoped |
-| **4 — LLM Router & Draft Generation** | ✅ Done | Groq/Gemini failover router with Redis-backed provider cooldown, single consolidated per-case prompt, template-first draft assembly with a combined type+content decision on when narrative reasoning is actually needed, per-case token budget guardrail |
-| **5 — Marketing Site** | ✅ Done | Home, product, solutions, security, pricing, and demo-request pages behind a shared public layout, with custom SVG illustrations in place of stock photography |
-| **6 — Authenticated App UI** | ✅ Done | Case dashboard, document upload/viewer (original file alongside extracted fields), chronology timeline, damages summary, inconsistency flags, and draft generation with inline editing and .docx export — all firm-scoped, with a typed API client generated from the backend's own OpenAPI schema |
-| **7 — Testing & Demo Data** | ✅ Done | A demonstration case folder of real, publicly sourced documents (a Supreme Court opinion, an SEC EDGAR contract exhibit, a blank IRS form, a real mtsamples medical report), each with documented provenance, plus a scripted end-to-end walkthrough that records real measurements rather than invented claims |
-| **8 — Observability & Docs** | ✅ Done | Structured JSON logging with per-request/job/LLM-call context, Grafana + Loki + Promtail for log aggregation (scoped strictly to this project's own containers), a generated interactive API reference, and a real user guide |
+| **0 - Project Setup** | ✅ Done | Repo scaffold, Docker Compose (Postgres+pgvector, Redis), typed env config, CI (lint + test), MkDocs site |
+| **1 - Backend Foundation** | ✅ Done | FastAPI skeleton, full SQLAlchemy data model, Alembic migrations, JWT auth (access + refresh), role-based access control, firm-level isolation enforced at the query layer and proven by an automated test |
+| **2 - Document Intake Pipeline** | ✅ Done | Multi-file/archive upload with validation and zip-slip protection, OCR (EasyOCR + PyMuPDF, with a per-page OCR fallback for scanned content), document classification via embedding similarity, background processing sharing the request's DB session |
+| **3 - Extraction & Analysis Engine** | ✅ Done | Structured field extraction (spaCy NER **+** regex **+** dateutil, cross-validated and range-checked before anything is persisted), chronology assembly, deterministic damages/wage totals, rule-based inconsistency detection, all firm-scoped |
+| **4 - LLM Router & Draft Generation** | ✅ Done | Groq/Gemini failover router with Redis-backed provider cooldown, single consolidated per-case prompt, template-first draft assembly with a combined type+content decision on when narrative reasoning is actually needed, per-case token budget guardrail |
+| **5 - Marketing Site** | ✅ Done | Home, product, solutions, security, pricing, and demo-request pages behind a shared public layout, with custom SVG illustrations in place of stock photography |
+| **6 - Authenticated App UI** | ✅ Done | Case dashboard, document upload/viewer (original file alongside extracted fields), chronology timeline, damages summary, inconsistency flags, and draft generation with inline editing and .docx export - all firm-scoped, with a typed API client generated from the backend's own OpenAPI schema |
+| **7 - Testing & Demo Data** | ✅ Done | A demonstration case folder of real, publicly sourced documents (a Supreme Court opinion, an SEC EDGAR contract exhibit, a blank IRS form, a real mtsamples medical report), each with documented provenance, plus a scripted end-to-end walkthrough that records real measurements rather than invented claims |
+| **8 - Observability & Docs** | ✅ Done | Structured JSON logging with per-request/job/LLM-call context, Grafana + Loki + Promtail for log aggregation (scoped strictly to this project's own containers), a generated interactive API reference, and a real user guide |
 
-Every phase to date carries its own automated test suite (24 backend tests as of Phase 6, with LLM provider calls mocked so CI never needs live API keys or network access), and every backend service module is deterministic and independently testable — no phase has required a rewrite of a prior one. Phase 6 was verified with a full scripted browser walkthrough, which is how a real UI bug — a case detail page that hung forever instead of showing a not-found state — was caught before it shipped. Phase 7's walkthrough against real documents surfaced its own honest findings (see [demo walkthrough results](docs/user-guide/demo-walkthrough-results.md)) rather than being tuned to look clean.
+Every phase to date carries its own automated test suite (24 backend tests as of Phase 6, with LLM provider calls mocked so CI never needs live API keys or network access), and every backend service module is deterministic and independently testable - no phase has required a rewrite of a prior one. Phase 6 was verified with a full scripted browser walkthrough, which is how a real UI bug - a case detail page that hung forever instead of showing a not-found state - was caught before it shipped. Phase 7's walkthrough against real documents surfaced its own honest findings (see [demo walkthrough results](docs/user-guide/demo-walkthrough-results.md)) rather than being tuned to look clean.
 
 ## 4. How This Helps
 
-- A paralegal uploads a folder of case documents instead of manually sorting them — OCR and classification happen automatically, including per-page fallback for scanned pages a text-layer scan alone would miss.
+- A paralegal uploads a folder of case documents instead of manually sorting them - OCR and classification happen automatically, including per-page fallback for scanned pages a text-layer scan alone would miss.
 - Dates, billed amounts, wage figures, and parties are extracted **and validated** (not just pattern-matched) before they ever reach a chronology or a total, so the numbers a lawyer reviews are numbers the system has already sanity-checked.
-- Damages and wage totals are computed **deterministically** — a spreadsheet-grade sum, not a language model's arithmetic — and inconsistencies (conflicting bills for the same date, suspicious gaps between medical records) are surfaced automatically instead of being found by accident during manual review.
-- Because all of the above happens with open-source models and rule-based logic, **a large language model is never involved until the final drafting step** — keeping per-case cost predictable and small, and keeping the system fully functional even if an LLM provider is unavailable (a case still gets a template-based draft).
-- Firm-level data isolation is enforced at the database query layer itself, not only checked at the API boundary — the kind of guarantee a law firm's own security review will actually ask for.
+- Damages and wage totals are computed **deterministically** - a spreadsheet-grade sum, not a language model's arithmetic - and inconsistencies (conflicting bills for the same date, suspicious gaps between medical records) are surfaced automatically instead of being found by accident during manual review.
+- Because all of the above happens with open-source models and rule-based logic, **a large language model is never involved until the final drafting step** - keeping per-case cost predictable and small, and keeping the system fully functional even if an LLM provider is unavailable (a case still gets a template-based draft).
+- Firm-level data isolation is enforced at the database query layer itself, not only checked at the API boundary - the kind of guarantee a law firm's own security review will actually ask for.
 
 ## 5. Solution Architecture
 
@@ -56,7 +56,7 @@ flowchart TB
         Marketing Site + Authenticated App`"]
     end
 
-    subgraph API["Backend API — FastAPI"]
+    subgraph API["Backend API - FastAPI"]
         AUTH["`**Auth & RBAC**
         JWT + Firm-Scoped Access`"]
         UPLOAD["`**Document Intake API**
@@ -65,7 +65,7 @@ flowchart TB
         /analyze, chronology, totals`"]
     end
 
-    subgraph PIPELINE["Document Processing Pipeline — implemented"]
+    subgraph PIPELINE["Document Processing Pipeline - implemented"]
         direction TB
         OCR["`**OCR**
         EasyOCR + PyMuPDF`"]
@@ -136,14 +136,14 @@ flowchart TB
 
 1. A user (lawyer, paralegal, or firm admin) uploads a case's document folder through the **React app**, authenticated via **JWT** with role-based access control.
 2. The **Document Intake API** validates each file (type, size, zip-slip protection for archives), stores the raw file in object storage, and enqueues background processing.
-3. **OCR** runs only where needed — a per-page fallback for scanned content that has no extractable text layer, so digital-native documents are never needlessly OCR'd.
-4. **Classification** assigns a category (medical record, bill, wage record, correspondence, contract, filing) by embedding similarity against fixed category prototypes — no LLM call.
-5. **Field extraction** combines spaCy NER with a regex safety net (regex catches formats NER misses, especially after imperfect OCR), then validates every candidate date and amount with `dateutil`/`Decimal` parsing and a plausibility check — bad candidates are dropped, never silently stored.
-6. Validated fields feed three deterministic engines: **chronology assembly**, **damages/wage totals**, and **rule-based inconsistency detection** — all case-scoped, all re-computable on demand, all firm-isolated.
-7. Once a case's chronology, totals, and flags are assembled, the **Draft API** decides whether narrative reasoning is actually needed (a demand letter always requires it; a plain chronology summary only escalates when there's an inconsistency worth explaining). When it is, a single consolidated package is sent through the **LLM Router** — which fails over between Groq and Gemini using Redis-backed rate-limit state, and never leaves a case without output, falling back to a deterministic template if both providers are unavailable or the case's token budget is exhausted.
+3. **OCR** runs only where needed - a per-page fallback for scanned content that has no extractable text layer, so digital-native documents are never needlessly OCR'd.
+4. **Classification** assigns a category (medical record, bill, wage record, correspondence, contract, filing) by embedding similarity against fixed category prototypes - no LLM call.
+5. **Field extraction** combines spaCy NER with a regex safety net (regex catches formats NER misses, especially after imperfect OCR), then validates every candidate date and amount with `dateutil`/`Decimal` parsing and a plausibility check - bad candidates are dropped, never silently stored.
+6. Validated fields feed three deterministic engines: **chronology assembly**, **damages/wage totals**, and **rule-based inconsistency detection** - all case-scoped, all re-computable on demand, all firm-isolated.
+7. Once a case's chronology, totals, and flags are assembled, the **Draft API** decides whether narrative reasoning is actually needed (a demand letter always requires it; a plain chronology summary only escalates when there's an inconsistency worth explaining). When it is, a single consolidated package is sent through the **LLM Router** - which fails over between Groq and Gemini using Redis-backed rate-limit state, and never leaves a case without output, falling back to a deterministic template if both providers are unavailable or the case's token budget is exhausted.
 8. The lawyer reviews and edits the draft in the app and exports it to Word.
 
-Every table in **PostgreSQL** (with the `pgvector` extension for embeddings) carries a `firm_id`, and every query is filtered by it at the query layer — the same guarantee proven by this project's firm-isolation test suite from Phase 1 onward.
+Every table in **PostgreSQL** (with the `pgvector` extension for embeddings) carries a `firm_id`, and every query is filtered by it at the query layer - the same guarantee proven by this project's firm-isolation test suite from Phase 1 onward.
 
 ## 6. Technology Stack
 
