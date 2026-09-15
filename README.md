@@ -30,12 +30,12 @@ Existing legal AI platforms (Harvey, Legora) target large enterprise firms with 
 | **2 — Document Intake Pipeline** | ✅ Done | Multi-file/archive upload with validation and zip-slip protection, OCR (EasyOCR + PyMuPDF, with a per-page OCR fallback for scanned content), document classification via embedding similarity, background processing sharing the request's DB session |
 | **3 — Extraction & Analysis Engine** | ✅ Done | Structured field extraction (spaCy NER **+** regex **+** dateutil, cross-validated and range-checked before anything is persisted), chronology assembly, deterministic damages/wage totals, rule-based inconsistency detection, all firm-scoped |
 | **4 — LLM Router & Draft Generation** | ✅ Done | Groq/Gemini failover router with Redis-backed provider cooldown, single consolidated per-case prompt, template-first draft assembly with a combined type+content decision on when narrative reasoning is actually needed, per-case token budget guardrail |
-| **5 — Marketing Site** | 🚧 Planned | Public site to an enterprise visual/content standard |
-| **6 — Authenticated App UI** | 🚧 Planned | Case dashboard, document viewer, chronology view, draft review/export |
+| **5 — Marketing Site** | ✅ Done | Home, product, solutions, security, pricing, and demo-request pages behind a shared public layout, with custom SVG illustrations in place of stock photography |
+| **6 — Authenticated App UI** | ✅ Done | Case dashboard, document upload/viewer (original file alongside extracted fields), chronology timeline, damages summary, inconsistency flags, and draft generation with inline editing and .docx export — all firm-scoped, with a typed API client generated from the backend's own OpenAPI schema |
 | **7 — Testing & Demo Data** | 🚧 Planned | Real public-source demonstration case folder, full pipeline walkthrough |
 | **8 — Observability & Docs** | 🚧 Planned | Structured logging/monitoring, generated API reference, user guide |
 
-Every phase to date carries its own automated test suite (19 tests as of Phase 4, with LLM provider calls mocked so CI never needs live API keys or network access), and every backend service module is deterministic and independently testable — no phase has required a rewrite of a prior one.
+Every phase to date carries its own automated test suite (24 backend tests as of Phase 6, with LLM provider calls mocked so CI never needs live API keys or network access), and every backend service module is deterministic and independently testable — no phase has required a rewrite of a prior one. Phase 6 was also verified with a full scripted browser walkthrough (registration through draft export and firm isolation), which is how a real UI bug — a case detail page that hung forever instead of showing a not-found state — was caught before it shipped.
 
 ## 4. How This Helps
 
@@ -130,7 +130,7 @@ flowchart TB
     class PG,STORE,REDIS data
 ```
 
-**Legend:** 🟦 Client · 🔵 Backend API · 🟩 Document processing pipeline · 🟨 LLM router and draft generation · 🟪 Data layer. Everything shown is implemented as of Phase 4.
+**Legend:** 🟦 Client · 🔵 Backend API · 🟩 Document processing pipeline · 🟨 LLM router and draft generation · 🟪 Data layer. Everything shown is implemented as of Phase 6.
 
 **End-to-end flow:**
 
@@ -141,7 +141,7 @@ flowchart TB
 5. **Field extraction** combines spaCy NER with a regex safety net (regex catches formats NER misses, especially after imperfect OCR), then validates every candidate date and amount with `dateutil`/`Decimal` parsing and a plausibility check — bad candidates are dropped, never silently stored.
 6. Validated fields feed three deterministic engines: **chronology assembly**, **damages/wage totals**, and **rule-based inconsistency detection** — all case-scoped, all re-computable on demand, all firm-isolated.
 7. Once a case's chronology, totals, and flags are assembled, the **Draft API** decides whether narrative reasoning is actually needed (a demand letter always requires it; a plain chronology summary only escalates when there's an inconsistency worth explaining). When it is, a single consolidated package is sent through the **LLM Router** — which fails over between Groq and Gemini using Redis-backed rate-limit state, and never leaves a case without output, falling back to a deterministic template if both providers are unavailable or the case's token budget is exhausted.
-8. *(Planned, Phase 5-6)* The lawyer reviews and edits the draft in the app and exports to Word or PDF.
+8. The lawyer reviews and edits the draft in the app and exports it to Word.
 
 Every table in **PostgreSQL** (with the `pgvector` extension for embeddings) carries a `firm_id`, and every query is filtered by it at the query layer — the same guarantee proven by this project's firm-isolation test suite from Phase 1 onward.
 
@@ -149,6 +149,7 @@ Every table in **PostgreSQL** (with the `pgvector` extension for embeddings) car
 
 | Layer | Technology |
 |---|---|
+| Frontend | React + TypeScript (Vite), Tailwind CSS, Recharts, a typed API client generated from the backend's OpenAPI schema |
 | Backend | FastAPI (Python, async, typed), SQLAlchemy, Alembic |
 | Database | PostgreSQL + `pgvector` |
 | Jobs / rate state | Redis (FastAPI `BackgroundTasks` for now; Celery when volume justifies it) |
@@ -156,7 +157,7 @@ Every table in **PostgreSQL** (with the `pgvector` extension for embeddings) car
 | Classification / embeddings | `sentence-transformers` (`all-MiniLM-L6-v2`) |
 | Structured extraction | spaCy NER (`en_core_web_sm`) + regex + `python-dateutil` |
 | Auth | OAuth2 password flow, JWT (access + refresh), `passlib`/`bcrypt` |
-| LLM (planned) | Groq (`gpt-oss-20b`) primary, Gemini secondary, router-based failover |
+| LLM | Groq (`gpt-oss-20b`) primary, Gemini secondary, Redis-backed router failover |
 | Containerization | Docker + Docker Compose |
 | CI | GitHub Actions (lint + test on every change) |
 | Docs | MkDocs (Material theme) + Mermaid diagrams |
@@ -185,6 +186,13 @@ Every table in **PostgreSQL** (with the `pgvector` extension for embeddings) car
    ```
    uv run pytest
    ```
+6. In a separate terminal, run the frontend (with the backend from step 4 still running):
+   ```
+   cd frontend
+   npm install
+   npm run dev
+   ```
+   Visit the printed local URL (typically `http://localhost:5173`). If the backend's API changes, regenerate the frontend's typed client with `npm run generate-api` (requires the backend running on port 8000).
 
 ## 8. Repository Layout
 
