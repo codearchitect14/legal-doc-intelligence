@@ -10,7 +10,9 @@ nav:
   - Architecture: architecture/index.md
   - Data Sources: architecture/data-sources.md
   - Setup: setup/index.md
+  - API Reference: api/index.md
   - User Guide: user-guide/index.md
+  - Demo Walkthrough Results: user-guide/demo-walkthrough-results.md
 markdown_extensions:
   - pymdownx.superfences:
       custom_fences:

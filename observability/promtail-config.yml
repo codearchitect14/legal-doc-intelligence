@@ -1,0 +1,33 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+# Docker service discovery, not a bind-mounted /var/lib/docker/containers
+# path — this reads container logs via the Docker socket, which is portable
+# across Docker Desktop platforms without needing host filesystem layout
+# assumptions.
+#
+# This machine runs multiple unrelated projects' containers side by side.
+# The Docker socket gives visibility into ALL of them, not just this
+# project's — the `filters` label restricts discovery to containers from
+# this compose project only, so no other project's logs ever get ingested
+# here (verified: without this, Promtail was pulling in other projects'
+# container logs from this host).
+scrape_configs:
+  - job_name: docker
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+        refresh_interval: 5s
+        filters:
+          - name: label
+            values: ["com.docker.compose.project=legal-doc-intelligence"]
+    relabel_configs:
+      - source_labels: ["__meta_docker_container_name"]
+        regex: "/(.*)"
+        target_label: "container"

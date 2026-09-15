@@ -57,5 +57,47 @@ services:
       - backend
     command: npm run dev -- --host 0.0.0.0
 
+  loki:
+    image: grafana/loki:2.9.4
+    restart: unless-stopped
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./observability/loki-config.yml:/etc/loki/local-config.yaml:ro
+      - loki_data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+
+  promtail:
+    image: grafana/promtail:2.9.4
+    restart: unless-stopped
+    volumes:
+      - ./observability/promtail-config.yml:/etc/promtail/config.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
+
+  grafana:
+    image: grafana/grafana:11.1.0
+    restart: unless-stopped
+    ports:
+      # Remapped from Grafana's default 3000 — this machine already runs
+      # another project's service on that port (see the standing port-
+      # collision convention from Phase 0's db/redis remapping).
+      - "3002:3000"
+    environment:
+      # Anonymous admin access is a local-dev convenience only — this stack
+      # is not exposed beyond localhost. A real deployment must set real
+      # Grafana credentials instead of relying on this.
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: "Admin"
+    volumes:
+      - ./observability/grafana-provisioning:/etc/grafana/provisioning:ro
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - loki
+
 volumes:
   db_data:
+  loki_data:
+  grafana_data:

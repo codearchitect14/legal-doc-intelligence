@@ -100,7 +100,10 @@ def generate_narrative(prompt: str, case_id: UUID, db: Session) -> str | None:
     is never left without output; the caller falls back to a template."""
     settings = get_settings()
     if _case_token_usage(case_id, db) >= settings.max_tokens_per_case:
-        logger.warning("case %s exceeded its token budget; skipping LLM call", case_id)
+        logger.warning(
+            "case exceeded its token budget; skipping LLM call",
+            extra={"case_id": str(case_id), "max_tokens_per_case": settings.max_tokens_per_case},
+        )
         return None
 
     for provider, call_fn in (("groq", _call_groq), ("gemini", _call_gemini)):
@@ -109,10 +112,22 @@ def generate_narrative(prompt: str, case_id: UUID, db: Session) -> str | None:
         try:
             text, input_tokens, output_tokens = _call_with_retries(call_fn, prompt)
         except ProviderError:
-            logger.exception("provider %s failed for case %s", provider, case_id)
+            logger.exception(
+                "LLM provider call failed",
+                extra={"provider": provider, "case_id": str(case_id)},
+            )
             mark_unavailable(provider)
             continue
 
+        logger.info(
+            "LLM call succeeded",
+            extra={
+                "provider": provider,
+                "case_id": str(case_id),
+                "input_tokens": input_tokens,
+                "output_tokens": output_tokens,
+            },
+        )
         db.add(
             ModelUsageLog(
                 case_id=case_id,

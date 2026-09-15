@@ -1,0 +1,10 @@
+# Same class of issue as backend/.dockerignore: without this, `docker build`
+# sends node_modules/ (installed fresh inside the container anyway) as part
+# of the build context, needlessly slowing every build.
+node_modules/
+dist/
+.vite/
+*.tsbuildinfo
+vite.config.js
+vite.config.d.ts
+.git/

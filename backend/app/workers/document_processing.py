@@ -17,14 +17,14 @@ def process_document(document_id: UUID, db: Session) -> None:
     BackgroundTask sharing the request's DB session (see Phase 2 plan)."""
     document = db.get(Document, document_id)
     if document is None:
-        logger.error("process_document: document %s not found", document_id)
+        logger.error("document not found for processing", extra={"document_id": str(document_id)})
         return
 
     try:
         text, ocr_status = extract_text(document.file_path)
         document.ocr_status = ocr_status
 
-        category, _confidence = classify(text)
+        category, confidence = classify(text)
         document.category = category
 
         for field in extract_fields(document, text):
@@ -40,7 +40,19 @@ def process_document(document_id: UUID, db: Session) -> None:
             )
 
         db.commit()
+        logger.info(
+            "document processed",
+            extra={
+                "document_id": str(document_id),
+                "case_id": str(document.case_id),
+                "category": category,
+                "classification_confidence": confidence,
+                "ocr_status": ocr_status,
+            },
+        )
     except Exception:
-        logger.exception("process_document failed for document %s", document_id)
+        logger.exception(
+            "document processing failed", extra={"document_id": str(document_id)}
+        )
         document.ocr_status = "failed"
         db.commit()

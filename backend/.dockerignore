@@ -1,0 +1,13 @@
+# Without this file, `docker build` sends the entire backend/ directory as
+# build context on every build — including .venv/ (1.4GB+ of ML packages:
+# torch, spaCy, EasyOCR), which made builds transfer a gigabyte-plus of
+# local files that get reinstalled fresh inside the container anyway. This
+# is what made the backend image take an extremely long time to build.
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+.git/
+data/uploads/
+*.egg-info/

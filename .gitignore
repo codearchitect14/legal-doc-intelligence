@@ -37,5 +37,9 @@ site/
 # Alembic
 *.sqlite3
 
-# Uploaded case documents (local dev object storage)
+# Uploaded case documents (local dev object storage). "data/uploads/" alone
+# only matches at repo root per gitignore's path-anchoring rules; running
+# the backend locally (cwd=backend/) writes to backend/data/uploads/
+# instead, which needs its own entry.
 data/uploads/
+backend/data/
