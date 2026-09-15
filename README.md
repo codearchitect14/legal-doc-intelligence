@@ -29,13 +29,13 @@ Existing legal AI platforms (Harvey, Legora) target large enterprise firms with 
 | **1 — Backend Foundation** | ✅ Done | FastAPI skeleton, full SQLAlchemy data model, Alembic migrations, JWT auth (access + refresh), role-based access control, firm-level isolation enforced at the query layer and proven by an automated test |
 | **2 — Document Intake Pipeline** | ✅ Done | Multi-file/archive upload with validation and zip-slip protection, OCR (EasyOCR + PyMuPDF, with a per-page OCR fallback for scanned content), document classification via embedding similarity, background processing sharing the request's DB session |
 | **3 — Extraction & Analysis Engine** | ✅ Done | Structured field extraction (spaCy NER **+** regex **+** dateutil, cross-validated and range-checked before anything is persisted), chronology assembly, deterministic damages/wage totals, rule-based inconsistency detection, all firm-scoped |
-| **4 — LLM Router & Draft Generation** | 🚧 Planned | Groq/Gemini failover router, single consolidated per-case prompt, template-first draft assembly |
+| **4 — LLM Router & Draft Generation** | ✅ Done | Groq/Gemini failover router with Redis-backed provider cooldown, single consolidated per-case prompt, template-first draft assembly with a combined type+content decision on when narrative reasoning is actually needed, per-case token budget guardrail |
 | **5 — Marketing Site** | 🚧 Planned | Public site to an enterprise visual/content standard |
 | **6 — Authenticated App UI** | 🚧 Planned | Case dashboard, document viewer, chronology view, draft review/export |
 | **7 — Testing & Demo Data** | 🚧 Planned | Real public-source demonstration case folder, full pipeline walkthrough |
 | **8 — Observability & Docs** | 🚧 Planned | Structured logging/monitoring, generated API reference, user guide |
 
-Every phase to date carries its own automated test suite (33 tests total as of Phase 3), and every backend service module is deterministic and independently testable — no phase has required a rewrite of a prior one.
+Every phase to date carries its own automated test suite (19 tests as of Phase 4, with LLM provider calls mocked so CI never needs live API keys or network access), and every backend service module is deterministic and independently testable — no phase has required a rewrite of a prior one.
 
 ## 4. How This Helps
 
@@ -47,7 +47,7 @@ Every phase to date carries its own automated test suite (33 tests total as of P
 
 ## 5. Solution Architecture
 
-The diagram below shows the full intended end-to-end system: what's built today (solid, colored by layer) and what's planned next (dashed amber, Phase 4 onward).
+The diagram below shows the full end-to-end system, colored by layer. Everything through the LLM drafting stage is implemented (Phases 0-4); the marketing site and authenticated app UI (Phases 5-6) are next.
 
 ```mermaid
 flowchart TB
@@ -85,7 +85,7 @@ flowchart TB
         EXTRACT --> GAPS
     end
 
-    subgraph FUTURE["LLM Draft Generation — planned, Phase 4+"]
+    subgraph INTEL["LLM Router and Draft Generation"]
         ROUTER["`**LLM Router**
         Groq ⇄ Gemini Failover`"]
         DRAFT["`**Draft Assembler**
@@ -111,26 +111,26 @@ flowchart TB
     TOTALS --> PG
     GAPS --> PG
 
-    CHRONO -.->|case package| ROUTER
-    TOTALS -.->|case package| ROUTER
-    GAPS -.->|case package| ROUTER
-    ROUTER -.-> DRAFT -.-> PG
-    ROUTER -.->|rate-limit state| REDIS
+    CHRONO -->|case package| ROUTER
+    TOTALS -->|case package| ROUTER
+    GAPS -->|case package| ROUTER
+    ROUTER --> DRAFT --> PG
+    ROUTER -->|rate-limit state| REDIS
 
     classDef client fill:#e0e7ff,stroke:#4338ca,stroke-width:2px,color:#1e1b4b
     classDef backend fill:#dbeafe,stroke:#1d4ed8,stroke-width:2px,color:#1e3a8a
     classDef pipeline fill:#dcfce7,stroke:#15803d,stroke-width:2px,color:#14532d
-    classDef future fill:#fef3c7,stroke:#b45309,stroke-width:2px,color:#78350f,stroke-dasharray: 5 5
+    classDef intel fill:#fef3c7,stroke:#b45309,stroke-width:2px,color:#78350f
     classDef data fill:#f3e8ff,stroke:#7e22ce,stroke-width:2px,color:#581c87
 
     class UI client
     class AUTH,UPLOAD,ANALYZE backend
     class OCR,CLASSIFY,EXTRACT,EMBED,CHRONO,TOTALS,GAPS pipeline
-    class ROUTER,DRAFT future
+    class ROUTER,DRAFT intel
     class PG,STORE,REDIS data
 ```
 
-**Legend:** 🟦 Client · 🔵 Backend API · 🟩 Document processing pipeline (implemented, Phases 2–3) · 🟨 dashed — LLM draft generation (planned, Phase 4) · 🟪 Data layer.
+**Legend:** 🟦 Client · 🔵 Backend API · 🟩 Document processing pipeline · 🟨 LLM router and draft generation · 🟪 Data layer. Everything shown is implemented as of Phase 4.
 
 **End-to-end flow:**
 
@@ -140,8 +140,8 @@ flowchart TB
 4. **Classification** assigns a category (medical record, bill, wage record, correspondence, contract, filing) by embedding similarity against fixed category prototypes — no LLM call.
 5. **Field extraction** combines spaCy NER with a regex safety net (regex catches formats NER misses, especially after imperfect OCR), then validates every candidate date and amount with `dateutil`/`Decimal` parsing and a plausibility check — bad candidates are dropped, never silently stored.
 6. Validated fields feed three deterministic engines: **chronology assembly**, **damages/wage totals**, and **rule-based inconsistency detection** — all case-scoped, all re-computable on demand, all firm-isolated.
-7. *(Planned, Phase 4)* Once a case's chronology, totals, and flags are assembled, a single consolidated package is sent through the **LLM Router** — which fails over between Groq and Gemini using Redis-backed rate-limit state — for exactly one model call per case to produce the narrative draft.
-8. The lawyer reviews and edits the draft in the app and exports to Word or PDF.
+7. Once a case's chronology, totals, and flags are assembled, the **Draft API** decides whether narrative reasoning is actually needed (a demand letter always requires it; a plain chronology summary only escalates when there's an inconsistency worth explaining). When it is, a single consolidated package is sent through the **LLM Router** — which fails over between Groq and Gemini using Redis-backed rate-limit state, and never leaves a case without output, falling back to a deterministic template if both providers are unavailable or the case's token budget is exhausted.
+8. *(Planned, Phase 5-6)* The lawyer reviews and edits the draft in the app and exports to Word or PDF.
 
 Every table in **PostgreSQL** (with the `pgvector` extension for embeddings) carries a `firm_id`, and every query is filtered by it at the query layer — the same guarantee proven by this project's firm-isolation test suite from Phase 1 onward.
 

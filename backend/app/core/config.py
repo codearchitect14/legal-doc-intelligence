@@ -23,6 +23,11 @@ class Settings(BaseSettings):
     groq_api_key: str = ""
     gemini_api_key: str = ""
     llm_preferred_provider: str = "groq"
+    groq_model: str = "openai/gpt-oss-20b"
+    gemini_model: str = "gemini-1.5-flash"
+    max_tokens_per_case: int = 8000
+    llm_max_retries: int = 2
+    llm_provider_cooldown_seconds: int = 120
 
     object_storage_path: str = "./data/uploads"
     max_upload_size_mb: int = 25

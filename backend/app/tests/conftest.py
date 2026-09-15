@@ -4,6 +4,7 @@ from sqlalchemy import event
 from sqlalchemy.orm import sessionmaker
 
 from app.core.db import Base, engine, get_db
+from app.core.redis_client import get_redis
 from app.main import app
 
 
@@ -44,3 +45,13 @@ def client(db_session):
 def _ensure_schema():
     Base.metadata.create_all(bind=engine)
     yield
+
+
+@pytest.fixture(autouse=True)
+def _clean_llm_provider_state():
+    """The LLM router's provider-availability flags live in real Redis, not
+    the per-test DB transaction, so they'd otherwise leak between tests."""
+    redis_client = get_redis()
+    redis_client.delete("llm:groq:unavailable", "llm:gemini:unavailable")
+    yield
+    redis_client.delete("llm:groq:unavailable", "llm:gemini:unavailable")
