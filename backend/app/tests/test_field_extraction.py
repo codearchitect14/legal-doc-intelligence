@@ -29,6 +29,19 @@ def test_implausible_date_is_dropped():
     assert not any(f.field_date is not None and f.field_date.year < 1990 for f in dates)
 
 
+def test_bare_year_citation_is_dropped_not_fabricated():
+    document = _make_document("filing")
+    fields = extract_fields(
+        document,
+        "The court's ruling in 1990 established the standard later applied in 2005.",
+    )
+    dates = [f for f in fields if f.field_name == "date"]
+    # A bare year has no real day/month - accepting it would silently
+    # invent a specific date (e.g. today's month/day) that was never in the
+    # source text, which is worse than dropping it.
+    assert not any(f.field_value in ("1990", "2005") for f in dates)
+
+
 def test_amount_is_parsed_to_decimal_string():
     document = _make_document("bill")
     fields = extract_fields(document, "Invoice total: $1,234.56 due upon receipt.")

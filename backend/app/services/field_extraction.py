@@ -67,10 +67,24 @@ def _regex_candidates(text: str, patterns: list[str], kind: str) -> list[_Candid
 
 
 def _parse_valid_date(text: str, today: date) -> date | None:
+    # dateutil silently fills in any day/month/year missing from the source
+    # text using its `default` argument's value - so a bare year like "1990"
+    # (extremely common in legal text as a citation year, e.g. "...in 1990,
+    # the agency...") parses "successfully" into a specific day that was
+    # never actually in the document. Parsing twice against two different
+    # defaults and rejecting anything that disagrees is the standard way to
+    # catch this: a fully-specified date agrees regardless of default, an
+    # incomplete one doesn't.
+    probe_a = datetime(1, 1, 1, tzinfo=UTC)
+    probe_b = datetime(2, 2, 2, tzinfo=UTC)
     try:
-        parsed = dateutil_parser.parse(text, fuzzy=False).date()
+        parsed_a = dateutil_parser.parse(text, fuzzy=False, default=probe_a)
+        parsed_b = dateutil_parser.parse(text, fuzzy=False, default=probe_b)
     except (ValueError, OverflowError):
         return None
+    if parsed_a != parsed_b:
+        return None
+    parsed = parsed_a.date()
     if parsed < MIN_PLAUSIBLE_DATE or parsed > today + MAX_FUTURE_SLACK:
         return None
     return parsed
