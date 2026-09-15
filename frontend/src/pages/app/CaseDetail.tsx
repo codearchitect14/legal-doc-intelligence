@@ -12,7 +12,7 @@ import { DocumentViewer } from "../../features/documents/DocumentViewer";
 import { DraftPanel } from "../../features/draft/DraftPanel";
 import { InconsistencyList } from "../../features/inconsistencies/InconsistencyList";
 import { TotalsSummary } from "../../features/totals/TotalsSummary";
-import { analysisApi, casesApi, documentsApi, type Schemas } from "../../lib/apiClient";
+import { ApiError, analysisApi, casesApi, documentsApi, type Schemas } from "../../lib/apiClient";
 
 const TABS = ["Documents", "Chronology", "Damages", "Inconsistencies", "Draft"] as const;
 type Tab = (typeof TABS)[number];
@@ -27,12 +27,27 @@ export function CaseDetail() {
   const [inconsistencies, setInconsistencies] = useState<Schemas["InconsistencyFlagOut"][]>([]);
   const [tab, setTab] = useState<Tab>("Documents");
   const [analyzing, setAnalyzing] = useState(false);
+  const [analyzeError, setAnalyzeError] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
 
   function reloadDocuments() {
     if (!caseId) return;
     documentsApi.list(caseId).then(setDocuments);
   }
+
+  // Upload finishing and background processing (OCR/classification/
+  // extraction) finishing are two different moments - the upload response
+  // returns immediately while processing keeps running server-side. Without
+  // this, a document stays stuck showing "Uncategorized / pending" on
+  // screen until the user manually reloads the whole page, even though
+  // processing may have already finished.
+  useEffect(() => {
+    const stillProcessing = documents.some((d) => d.ocr_status === "pending");
+    if (!stillProcessing) return;
+    const timer = setInterval(reloadDocuments, 2000);
+    return () => clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [documents]);
 
   function reloadAnalysis() {
     if (!caseId) return;
@@ -60,9 +75,19 @@ export function CaseDetail() {
   async function handleAnalyze() {
     if (!caseId) return;
     setAnalyzing(true);
+    setAnalyzeError(null);
     try {
       await analysisApi.analyze(caseId);
       reloadAnalysis();
+      // Analysis results land on the Chronology/Damages/Inconsistencies
+      // tabs, not the Documents tab the user is usually on when they click
+      // this. Without switching tabs, a fast, successful run looks
+      // identical to the button doing nothing at all.
+      setTab("Chronology");
+    } catch (err) {
+      setAnalyzeError(
+        err instanceof ApiError ? err.message : "Analysis failed. Please try again.",
+      );
     } finally {
       setAnalyzing(false);
     }
@@ -94,6 +119,7 @@ export function CaseDetail() {
           {analyzing ? "Analyzing…" : "Run Analysis"}
         </Button>
       </div>
+      {analyzeError && <p className="mt-2 text-sm text-danger-500">{analyzeError}</p>}
 
       <div className="mt-6 flex gap-1 border-b border-slate-200">
         {TABS.map((t) => (

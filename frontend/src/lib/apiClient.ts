@@ -42,6 +42,7 @@ async function refreshAccessToken(): Promise<string | null> {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ refresh_token: refreshToken }),
+    cache: "no-store",
   });
   if (!response.ok) {
     setRefreshToken(null);
@@ -74,6 +75,12 @@ async function request<T>(path: string, options: RequestOptions = {}, isRetry = 
         ? JSON.stringify(options.body)
         : undefined,
     signal: options.signal,
+    // Every response here reflects live, frequently-changing case state
+    // (e.g. GET /totals legitimately flips from 404 to 200 the moment
+    // /analyze runs). Without this, the browser's HTTP cache can serve an
+    // earlier response for an identical GET instead of hitting the network,
+    // showing stale results after an action that just changed them.
+    cache: "no-store",
   });
 
   if (response.status === 401 && !isRetry) {
@@ -111,8 +118,29 @@ export const authApi = {
     const form = new URLSearchParams();
     form.set("username", email);
     form.set("password", password);
-    const response = await fetch("/api/auth/login", { method: "POST", body: form });
-    if (!response.ok) throw new ApiError(response.status, "Incorrect email or password");
+    let response: Response;
+    try {
+      response = await fetch("/api/auth/login", { method: "POST", body: form, cache: "no-store" });
+    } catch {
+      throw new ApiError(0, "Could not reach the server. Is the backend running?");
+    }
+    if (!response.ok) {
+      // A wrong password/email is the only case that should say so; any
+      // other failure (backend down, proxy error, validation error) must
+      // surface its real cause instead of being mislabeled as bad
+      // credentials, which was hiding genuine outages during local testing.
+      if (response.status === 401) {
+        throw new ApiError(response.status, "Incorrect email or password");
+      }
+      let detail = response.statusText || "Login failed";
+      try {
+        const errorBody = await response.json();
+        detail = errorBody.detail ? JSON.stringify(errorBody.detail) : detail;
+      } catch {
+        // response body wasn't JSON; keep the status text
+      }
+      throw new ApiError(response.status, detail);
+    }
     const data = (await response.json()) as Schemas["TokenPair"];
     setAccessToken(data.access_token);
     setRefreshToken(data.refresh_token);
