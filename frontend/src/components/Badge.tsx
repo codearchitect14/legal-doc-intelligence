@@ -32,3 +32,20 @@ export function statusTone(status: string): Tone {
   };
   return map[status] ?? "neutral";
 }
+
+// Raw backend enum values (ocr_status, draft status, etc.) are internal
+// vocabulary, not something a first-time user should have to decode -
+// "not_required" reads as an error to someone who doesn't know it means
+// "processing finished, OCR wasn't needed for this file."
+export function statusLabel(status: string): string {
+  const map: Record<string, string> = {
+    pending: "Processing…",
+    not_required: "Ready",
+    completed: "Ready",
+    complete: "Ready",
+    failed: "Failed",
+    template_fallback: "Ready (template)",
+    intake: "Intake",
+  };
+  return map[status] ?? status;
+}
