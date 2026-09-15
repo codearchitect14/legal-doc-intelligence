@@ -1,5 +1,6 @@
 import uuid
 from datetime import date
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from sqlalchemy import Date, ForeignKey, String, Text
@@ -27,6 +28,15 @@ class Document(Base, UUIDPrimaryKeyMixin, CreatedAtMixin):
     case: Mapped["Case"] = relationship(back_populates="documents")
     extracted_fields: Mapped[list["ExtractedField"]] = relationship(back_populates="document")
     embedding_chunks: Mapped[list["EmbeddingChunk"]] = relationship(back_populates="document")
+
+    @property
+    def filename(self) -> str:
+        """The original uploaded filename, derived from storage's own
+        firm/case/document-scoped path (see app/services/storage.py) rather
+        than a separate stored column - it was never exposed via the API at
+        all, so the UI could only ever show a document's category, never
+        the name a user would actually recognize (e.g. "invoice_march.pdf")."""
+        return Path(self.file_path).name
 
 
 class ExtractedField(Base, UUIDPrimaryKeyMixin, CreatedAtMixin):

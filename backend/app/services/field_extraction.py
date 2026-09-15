@@ -16,6 +16,10 @@ _nlp = None
 MIN_PLAUSIBLE_DATE = date(1990, 1, 1)
 MAX_FUTURE_SLACK = timedelta(days=365 * 2)
 
+# A single medical bill or wage line item this large is almost always a
+# parsing artifact, not a real figure - see _parse_valid_amount.
+MAX_PLAUSIBLE_AMOUNT = Decimal(1000000)
+
 DATE_REGEX_PATTERNS = [
     r"\b\d{1,2}/\d{1,2}/\d{2,4}\b",  # MM/DD/YYYY
     r"\b\d{1,2}-\d{1,2}-\d{2,4}\b",  # DD-MM-YYYY
@@ -91,6 +95,15 @@ def _parse_valid_date(text: str, today: date) -> date | None:
 
 
 def _parse_valid_amount(text: str) -> Decimal | None:
+    # spaCy's MONEY entity can span more than one figure in dense tabular
+    # text (observed on a real itemized bill: "$900 \n$1,225 \n$" returned
+    # as one entity, spanning three table cells across two newlines). A
+    # single legitimate currency figure never contains a newline or more
+    # than one '$', so stripping non-digit characters from a spanning match
+    # like that would silently concatenate it into a nonsensical amount
+    # (here, $900/$1,225 became $9,001,225) instead of being rejected.
+    if "\n" in text or text.count("$") > 1:
+        return None
     normalized = re.sub(r"[^\d.]", "", text)
     if not normalized:
         return None
@@ -98,7 +111,7 @@ def _parse_valid_amount(text: str) -> Decimal | None:
         value = Decimal(normalized)
     except InvalidOperation:
         return None
-    if value <= 0:
+    if value <= 0 or value > MAX_PLAUSIBLE_AMOUNT:
         return None
     return value
 

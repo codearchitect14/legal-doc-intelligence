@@ -22,6 +22,7 @@ export function CaseDetail() {
   const [caseData, setCaseData] = useState<Schemas["CaseOut"] | null>(null);
   const [documents, setDocuments] = useState<Schemas["DocumentOut"][]>([]);
   const [selectedDocId, setSelectedDocId] = useState<string | null>(null);
+  const selectedDoc = documents.find((d) => d.id === selectedDocId) ?? null;
   const [chronology, setChronology] = useState<Schemas["TimelineEventOut"][]>([]);
   const [totals, setTotals] = useState<Schemas["CaseTotalsOut"] | null>(null);
   const [inconsistencies, setInconsistencies] = useState<Schemas["InconsistencyFlagOut"][]>([]);
@@ -147,8 +148,8 @@ export function CaseDetail() {
                 selectedId={selectedDocId}
                 onSelect={setSelectedDocId}
               />
-              {selectedDocId ? (
-                <DocumentViewer caseId={caseId} documentId={selectedDocId} />
+              {selectedDoc ? (
+                <DocumentViewer caseId={caseId} document={selectedDoc} />
               ) : (
                 <p className="text-sm text-slate-500">Select a document to view it.</p>
               )}

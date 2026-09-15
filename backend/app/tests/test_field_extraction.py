@@ -1,3 +1,4 @@
+from decimal import Decimal
 from uuid import uuid4
 
 from app.models.document import Document
@@ -53,3 +54,19 @@ def test_amount_only_extracted_for_bill_and_wage_categories():
     document = _make_document("correspondence")
     fields = extract_fields(document, "The amount mentioned, $1,234.56, is not a bill.")
     assert not any(f.field_name in ("billed_amount", "wage_amount") for f in fields)
+
+
+def test_multiline_amount_span_is_dropped_not_concatenated():
+    # A real itemized bill (a table with one $ figure per row) can produce a
+    # spaCy MONEY entity that spans multiple table cells and newlines, e.g.
+    # "$900 \n$1,225 \n$". Stripping non-digit characters from that would
+    # silently concatenate it into $9,001,225 - a fabricated number nearly
+    # 10,000x too large - instead of being rejected as unparseable.
+    document = _make_document("bill")
+    fields = extract_fields(
+        document,
+        "Total from Dr. Miller\n$900 \n$1,225 \n$325 higher\nItem 1 $300 Item 2 $350",
+    )
+    amounts = [f for f in fields if f.field_name == "billed_amount"]
+    assert not any(f.field_value == "9001225" for f in amounts)
+    assert all(Decimal(f.field_value) < Decimal(1_000_000) for f in amounts)

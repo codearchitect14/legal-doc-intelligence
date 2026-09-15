@@ -7,6 +7,7 @@ from pydantic import BaseModel
 class DocumentOut(BaseModel):
     id: UUID
     case_id: UUID
+    filename: str
     category: str | None
     ocr_status: str
     created_at: datetime

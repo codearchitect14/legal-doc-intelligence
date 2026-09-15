@@ -21,11 +21,18 @@ def build_chronology(case_id: UUID, db: Session) -> list[TimelineEvent]:
 
     events = []
     for field, document in date_fields:
-        category_label = (document.category or "document").replace("_", " ")
+        # A plain human-readable sentence, not "category: raw_text" shorthand
+        # - this description is shown directly in the UI and dropped verbatim
+        # into generated drafts (a demand letter or case summary a lawyer may
+        # actually send), so it needs to read as a sentence in both places
+        # rather than being reformatted ad hoc by each consumer.
+        category_label = (document.category or "uncategorized").replace("_", " ")
         event = TimelineEvent(
             case_id=case_id,
             event_date=field.field_date,
-            description=f"{category_label}: {field.field_value}",
+            description=(
+                f'"{document.filename}" (classified as {category_label}) mentions "{field.field_value}"'
+            ),
             source_document_id=document.id,
         )
         db.add(event)

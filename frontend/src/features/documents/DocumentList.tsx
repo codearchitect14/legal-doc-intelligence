@@ -37,10 +37,13 @@ export function DocumentList({
                 selectedId === doc.id ? "bg-brand-50" : ""
               }`}
             >
-              <span className="flex items-center gap-2 truncate">
+              <span className="flex min-w-0 items-center gap-2">
                 <FileText className="h-4 w-4 shrink-0 text-slate-400" aria-hidden />
-                <span className="truncate">
-                  {doc.ocr_status === "pending" ? "Processing…" : (doc.category ?? "Uncategorized")}
+                <span className="min-w-0">
+                  <span className="block truncate font-medium text-slate-800">{doc.filename}</span>
+                  <span className="block truncate text-xs text-slate-500">
+                    {doc.ocr_status === "pending" ? "Processing…" : (doc.category ?? "Uncategorized")}
+                  </span>
                 </span>
               </span>
               <Badge tone={statusTone(doc.ocr_status)}>{statusLabel(doc.ocr_status)}</Badge>

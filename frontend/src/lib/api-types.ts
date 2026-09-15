@@ -432,6 +432,8 @@ export interface components {
              * Format: uuid
              */
             case_id: string;
+            /** Filename */
+            filename: string;
             /** Category */
             category: string | null;
             /** Ocr Status */
